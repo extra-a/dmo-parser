@@ -7,7 +7,7 @@ import { parseDemo } from './parser.js';
 async function main() {
   try {
     const argv = parseArgs(process.argv.slice(2));
-    let filePath = argv._[0];
+    const filePath = argv._[0];
     let filehandle: FileHandle;
     try {
       filehandle = await open(path.normalize(filePath), 'r');

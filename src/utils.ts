@@ -64,7 +64,7 @@ export function getString(iter: DataIter): string {
     if (chIdx === 0) {
       break;
     }
-    const char = String.fromCharCode(cube2unichars[chIdx])
+    const char = String.fromCharCode(cube2unichars[chIdx]);
     data.push(char);
   }
   return data.join('');
