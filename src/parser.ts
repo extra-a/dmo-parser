@@ -203,7 +203,7 @@ function parseMessage(iter: DataIter, meta: Record<string, any>): { msg: Message
       const data: any[] = []
       while(iter.remaining()) {
         const name = getString(iter);
-        if (name[0] === '\0' || !iter.remaining()) {
+        if (name === '' || !iter.remaining()) {
           break;
         }
         const frags = getVlqInt(iter);
