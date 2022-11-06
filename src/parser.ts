@@ -285,7 +285,14 @@ function parseMessage(iter: DataIter, meta: Record<string, any>): { msg: Message
     }
     // ctf
     case 'N_INITFLAGS': {
-      return {msg};
+      const scores = [getVlqInt(iter), getVlqInt(iter)];
+      const nFlags = getVlqInt(iter);
+      let rawData = [];
+      if (nFlags) {
+        const remaining = iter.remaining();
+        rawData = consumeNBytes(iter, remaining)
+      }
+      return {msg, scores, nFlags, rawData};
     }
     case 'N_DROPFLAG': {
       const ocn = getVlqInt(iter);
