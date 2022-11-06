@@ -16,10 +16,10 @@
     "@types/node": "^18.11.9",
     "esbuild": "^0.15.12",
     "pkg": "^5.8.0",
+    "tslib": "^2.4.1",
     "typescript": "^4.8.4"
   },
   "dependencies": {
-    "it-peekable": "^2.0.0",
     "minimist": "^1.2.7"
   }
 }

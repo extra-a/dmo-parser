@@ -1,4 +1,3 @@
-import { DemoHeader } from './types.js';
 import { getInt32, consumeNBytes, consumeByte, getVlqInt, getVlqUInt, clamp, vecfromyawpitch, vec3Multiply, Vec3, getString } from './utils.js';
 import { MessageNames, idsToMessageNames, DMF, DVELF, ammoNames, gunNames } from './const.js';
 import { DataIter } from './data-iter.js';
@@ -31,7 +30,7 @@ function parsePackets(iter: DataIter) {
   }
 }
 
-function checkDemoHeader(iter: DataIter): DemoHeader {
+function checkDemoHeader(iter: DataIter) {
   const fileVersion = getInt32(iter);
   if (fileVersion !== 1) {
     throw new Error(`Wrong file version ${fileVersion}`);
@@ -164,12 +163,12 @@ function parseMessage(iter: DataIter, meta: Record<string, any>): { msg: Message
       return { msg, cn, ...data };
     }
     case 'N_SHOTFX': {
-      const scn = getVlqInt(iter);
+      const cn = getVlqInt(iter);
       const gun = getVlqInt(iter);
       const id = getVlqInt(iter);
       const from = [0, 0, 0].map(() => getVlqInt(iter) / DMF);
       const to = [0, 0, 0].map(() => getVlqInt(iter) / DMF);
-      return { msg, scn, gun, id, from, to };
+      return { msg, cn, gun, id, from, to };
     }
     case 'N_EXPLODEFX': {
       const ecn = getVlqInt(iter);
@@ -186,18 +185,18 @@ function parseMessage(iter: DataIter, meta: Record<string, any>): { msg: Message
       return { msg, tcn, acn, damage, armour, health };
     }
     case 'N_HITPUSH': {
-      const tcn = getVlqInt(iter);
+      const cn = getVlqInt(iter);
       const gun = getVlqInt(iter);
       const damage = getVlqInt(iter);
       const dir = [0, 0, 0].map(() => getVlqInt(iter) / DMF);
-      return { msg, tcn, gun, damage, dir };
+      return { msg, cn, gun, damage, dir };
     }
     case 'N_DIED': {
-      const vcn = getVlqInt(iter);
+      const tcn = getVlqInt(iter);
       const acn = getVlqInt(iter);
       const frags = getVlqInt(iter);
       const tfrags = getVlqInt(iter);
-      return { msg, vcn, acn, frags, tfrags };
+      return { msg, tcn, acn, frags, tfrags };
     }
     case 'N_TEAMINFO': {
       const data: any[] = []
