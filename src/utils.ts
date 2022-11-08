@@ -7,30 +7,30 @@ export function getInt32(iter: DataIter): number {
 }
 
 export function consumeByte(iter: DataIter): number {
-  const res1 = iter.next().value;
+  const res1 = iter.next().value!;
   return res1;
 }
 
 export function consumeNBytes(iter: DataIter, n: number): number[] {
   let data: number[] = [];
   for (let idx = 0; idx < n; idx++) {
-    const res1 = iter.next().value;
+    const res1 = iter.next().value!;
     data.push(res1);
   }
   return data;
 }
 
 export function getVlqInt(iter: DataIter): number {
-  const initial = toSigned(iter.next().value);
+  const initial = toSigned(iter.next().value!);
   if (initial === -128) {
-    let n: number = iter.next().value;
-    n |= toSigned(iter.next().value) << 8;
+    let n: number = iter.next().value!;
+    n |= toSigned(iter.next().value!) << 8;
     return n;
   } else if (initial === -127) {
-    let n: number = iter.next().value[1];
-    n |= iter.next().value << 8;
-    n |= iter.next().value << 16;
-    n |= iter.next().value << 24;
+    let n: number = iter.next().value!;
+    n |= iter.next().value! << 8;
+    n |= iter.next().value! << 16;
+    n |= iter.next().value! << 24;
     return n;
   } else {
     return initial;
@@ -38,16 +38,16 @@ export function getVlqInt(iter: DataIter): number {
 }
 
 export function getVlqUInt(iter: DataIter): number {
-  let n = iter.next().value;
+  let n = iter.next().value!;
   if(n & 0x80) {
-    let next = iter.next().value;
+    let next = iter.next().value!;
     n += (next << 7) - 0x80;
     if (n & (1<<14)) {
-      next = iter.next().value;
+      next = iter.next().value!;
       n += (next << 14) - (1<<14)
     }
     if (n & (1<<21)) {
-      next = iter.next().value;
+      next = iter.next().value!;
       n += (next << 21) - (1<<21)
     }
     if (n & (1<<28)) {

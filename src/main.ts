@@ -8,7 +8,7 @@ async function main() {
   try {
     const argv = parseArgs(process.argv.slice(2));
     const filePath = argv._[0];
-    let filehandle: FileHandle;
+    let filehandle: FileHandle | void;
     try {
       filehandle = await open(path.normalize(filePath), 'r');
       const compressedBuff = await filehandle.readFile();

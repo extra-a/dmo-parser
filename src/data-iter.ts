@@ -16,7 +16,7 @@ export class DataIter<T = number> implements IterableIterator<T> {
     return this;
   };
 
-  next(): IteratorResult<T,T> {
+  next(): IteratorResult<T, T | undefined> {
     if (this.consumed >= this.limit) {
       return { value: undefined, done: true };
     } else {

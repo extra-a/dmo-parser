@@ -1,7 +1,8 @@
 
 export function objectFlip<K extends (string | number), V extends (string | number)>(obj: Record<K,V>) {
   const ret = {} as Record<V,K>;
-  Object.keys(obj).forEach(key => {
+  Object.keys(obj).forEach((key) => {
+    // @ts-ignore
     ret[obj[key]] = key;
   });
   return ret;
@@ -155,7 +156,7 @@ export type MessageNames = typeof messages[number] | 'UNKNOWN';
 
 export const messageNamesToIds = messages.reduce(
   (acc, msg, idx) => {
-    acc[(msg as string)] = idx;
+    acc[msg] = idx;
     return acc;
   },
   {} as Record<MessageNames, number>);

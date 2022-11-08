@@ -286,7 +286,7 @@ function parseMessage(iter: DataIter, meta: Record<string, any>): { msg: Message
     case 'N_INITFLAGS': {
       const scores = [getVlqInt(iter), getVlqInt(iter)];
       const nFlags = getVlqInt(iter);
-      let rawData = [];
+      let rawData: number[] = [];
       if (nFlags) {
         const remaining = iter.remaining();
         rawData = consumeNBytes(iter, remaining)
