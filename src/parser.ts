@@ -1,13 +1,13 @@
 import { getInt32, consumeNBytes, consumeByte, getVlqInt, getVlqUInt, clamp, vecfromyawpitch, vec3Multiply, Vec3, getString } from './utils.js';
-import { MessageNames, idsToMessageNames, DMF, DVELF, ammoNames, gunNames } from './const.js';
+import { MessageNames, idsToMessageNames260, idsToMessageNames259, DMF, DVELF, ammoNames, gunNames } from './const.js';
 import { DataIter } from './data-iter.js';
 import os from 'node:os';
 
 export function parseDemo(buffer: Buffer) {
   const iter = new DataIter(buffer.values(), buffer.length);
   checkMagic(iter);
-  checkDemoHeader(iter);
-  parsePackets(iter);
+  const { protocolVersion } = checkDemoHeader(iter);
+  parsePackets(iter, protocolVersion);
 }
 
 function checkMagic(iter: DataIter) {
@@ -18,14 +18,14 @@ function checkMagic(iter: DataIter) {
   }
 }
 
-function parsePackets(iter: DataIter) {
+function parsePackets(iter: DataIter, ver: number) {
   while(iter.remaining() > 0) {
     const timestamp = getInt32(iter);
     const ch = getInt32(iter);
     const length = getInt32(iter);
     const msgIter = new DataIter(iter, length);
     while (msgIter.remaining() > 0) {
-      parseMessages(msgIter, { timestamp, ch, });
+      parseMessages(msgIter, { timestamp, ch, }, ver);
     }
   }
 }
@@ -36,21 +36,22 @@ function checkDemoHeader(iter: DataIter) {
     throw new Error(`Wrong file version ${fileVersion}`);
   }
   const protocolVersion = getInt32(iter);
-  if (protocolVersion !== 260) {
+  if (protocolVersion > 260 || protocolVersion < 259) {
     throw new Error(`Wrong protocal version ${protocolVersion}`);
   }
   return { fileVersion, protocolVersion };
 }
 
-function getMsgName(iter: DataIter): MessageNames {
+function getMsgName(iter: DataIter, ver: number): MessageNames {
   const idx = getVlqInt(iter);
-  const name = idsToMessageNames[idx] ?? 'UNKNOWN';
+  const data = ver === 260 ? idsToMessageNames260 : idsToMessageNames259;
+  const name = data[idx] ?? 'UNKNOWN';
   return name;
 }
 
-function parseMessages(iter: DataIter, meta: Record<string, any>): void {
+function parseMessages(iter: DataIter, meta: Record<string, any>, ver: number): void {
   while(iter.remaining()) {
-    const data = parseMessage(iter, meta);
+    const data = parseMessage(iter, meta, ver);
     if (data) {
       const ev = { ...meta, ...data };
       process.stdout.write(JSON.stringify(ev) + os.EOL);
@@ -58,8 +59,8 @@ function parseMessages(iter: DataIter, meta: Record<string, any>): void {
   }
 }
 
-function parseMessage(iter: DataIter, meta: Record<string, any>): { msg: MessageNames, [idx: string]: any } | void {
-  const msg = getMsgName(iter);
+function parseMessage(iter: DataIter, meta: Record<string, any>, ver: number): { msg: MessageNames, [idx: string]: any } | void {
+  const msg = getMsgName(iter, ver);
   switch (msg) {
     case 'N_POS': {
       const data = parsePos(iter);
@@ -79,7 +80,7 @@ function parseMessage(iter: DataIter, meta: Record<string, any>): { msg: Message
     case 'N_WELCOME': {
       const data: any[] = [];
       while(iter.remaining()) {
-        const ev = parseMessage(iter, meta);
+        const ev = parseMessage(iter, meta, ver);
         data.push(ev);
       }
       return { msg, data };
@@ -97,7 +98,7 @@ function parseMessage(iter: DataIter, meta: Record<string, any>): { msg: Message
     case 'N_CLIENT': {
       const cn = getVlqInt(iter);
       const len = getVlqUInt(iter);
-      return parseMessages(new DataIter(iter, len), {...meta, cn});
+      return parseMessages(new DataIter(iter, len), {...meta, cn}, ver);
     }
     case 'N_SOUND': {
       const s = getVlqInt(iter);
@@ -154,12 +155,12 @@ function parseMessage(iter: DataIter, meta: Record<string, any>): { msg: Message
       return { msg, cn };
     }
     case 'N_SPAWN': {
-      const data = parseState(iter);
+      const data = parseState(iter, ver);
       return { msg, ...data };
     }
     case 'N_SPAWNSTATE': {
       const cn =  getVlqInt(iter);
-      const data = parseState(iter);
+      const data = parseState(iter, ver);
       return { msg, cn, ...data };
     }
     case 'N_SHOTFX': {
@@ -224,7 +225,7 @@ function parseMessage(iter: DataIter, meta: Record<string, any>): { msg: Message
         if (cn < 0 || !iter.remaining()) {
           break;
         }
-        const state = parseState(iter, true);
+        const state = parseState(iter, ver, true);
         data.push({ cn, ...state });
       }
       return { msg, data };
@@ -401,13 +402,16 @@ function parsePos(iter: DataIter) {
   };
 }
 
-function parseState(iter: DataIter, resume = false) {
+function parseState(iter: DataIter, ver: number, resume = false) {
   let p1 = {} as any;
   if (resume) {
     const state = getVlqInt(iter);
     const frags = getVlqInt(iter);
     const flags = getVlqInt(iter);
-    const deaths = getVlqInt(iter);
+    let deaths = 0;
+    if (ver === 260) {
+      deaths = getVlqInt(iter);
+    }
     const quadmillis = getVlqInt(iter);
     p1 = { state, frags, flags, deaths, quadmillis };
   }

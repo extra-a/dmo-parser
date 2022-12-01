@@ -1,13 +1,4 @@
 
-export function objectFlip<K extends (string | number), V extends (string | number)>(obj: Record<K,V>) {
-  const ret = {} as Record<V,K>;
-  Object.keys(obj).forEach((key) => {
-    // @ts-ignore
-    ret[obj[key]] = key;
-  });
-  return ret;
-}
-
 export const messages = [
   'N_CONNECT',
   'N_SERVINFO',
@@ -154,13 +145,16 @@ export const messages = [
 
 export type MessageNames = typeof messages[number] | 'UNKNOWN';
 
-export const messageNamesToIds = messages.reduce(
-  (acc, msg, idx) => {
-    acc[msg] = idx;
-    return acc;
-  },
-  {} as Record<MessageNames, number>);
-export const idsToMessageNames = objectFlip(messageNamesToIds);
+const exclude259 = new Set([
+  'N_EDITVSLOT',
+  'N_UNDO',
+  'N_REDO',
+]);
+
+const messages259 = messages.filter(m => !exclude259.has(m));
+
+export const idsToMessageNames260 = Object.fromEntries(messages.entries());
+export const idsToMessageNames259 = Object.fromEntries(messages259.entries());
 
 export const DMF = 16;
 export const DNF = 100;
